@@ -1,2 +1,16 @@
 # CloudDesktopManager
 Un administrador tipo Copias de Seguridad, pero mas pobre... pero funciona
+
+## Objetivo, la razon del crearlo
+Pasa que me gusta dejar archivos y carpetas sueltas en el Escritorio, y tambien pasa que tengo mi notebook y en casos estas archivos/carpetas sueltas las necesito en mi notebook, pero, estan en el pc.
+Pensando en esto, y evitando utilizar copias de seguridad de los servicios de almacenamiento en nube como OneDrive, el cual esta bien, pero no quiero que se pasen algunas carpetas que pesan mas de 10GB. Entonces me puse a crear esto.
+Este programa basicamente ve si hay archivos en una ruta, si los hay, entonces los sube a la ruta de un servicio de almacenamiento en la nube (rutanube = C:\Users\elsa\OneDrive), toma los archivos del escritorio y los mueve a esa ruta, luego crea un acceso directo en la ruta que se encontraban originalmente, asi sigo tendiendo mi escritorio como siempre.
+
+Tambien esta pensado para que trabaje en conjunto, pero de manera independiente, con otras instancias en otros computadores, asi si un computador, llamemoslo PC-1 sincroniza este archivo y luego viene PC-2 y ve que hay un nuevo archivo en la nube, pues entonces lo descarga el OneDrive, y nuestro programita solo lo crea el acceso directo al la ruta que le demos.
+Asi que si, la sincronizacion y trabajo es en dos rutas.
+
+## Funcionamiento
+Ve el codigo, cambiara en el futuro, hacer la documentacion seria una tortura.
+
+## Proyecto
+Lenguaje WindowsForms .vb (.net) Microsoft Visual Studio 2017 Community
