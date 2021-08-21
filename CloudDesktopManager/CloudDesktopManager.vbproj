@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{170210F8-F9BE-473C-932B-81AAB801C8E7}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <StartupObject>CloudDesktopManager.My.MyApplication</StartupObject>
-    <RootNamespace>CloudDesktopManager</RootNamespace>
+    <StartupObject>Cloud_Desktop_Manager.My.MyApplication</StartupObject>
+    <RootNamespace>Cloud_Desktop_Manager</RootNamespace>
     <AssemblyName>CloudDesktopManager</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>WindowsForms</MyType>
@@ -45,6 +45,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>AppLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -117,6 +120,9 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="AppLogo.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>
