@@ -40,6 +40,7 @@ Partial Class Main
         Me.Label3 = New System.Windows.Forms.Label()
         Me.TrayIcon = New System.Windows.Forms.NotifyIcon(Me.components)
         Me.ToolTips = New System.Windows.Forms.ToolTip(Me.components)
+        Me.CheckBox1 = New System.Windows.Forms.CheckBox()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
         CType(Me.nudSyncTime, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -60,7 +61,6 @@ Partial Class Main
         Me.tbRutaRemota.Name = "tbRutaRemota"
         Me.tbRutaRemota.Size = New System.Drawing.Size(383, 20)
         Me.tbRutaRemota.TabIndex = 1
-        Me.tbRutaRemota.Text = "C:\Users\Criz\OneDrive\Escritorio"
         Me.ToolTips.SetToolTip(Me.tbRutaRemota, "Ruta de la carpeta sincronizada con la nube")
         '
         'tbRutaLocal
@@ -69,7 +69,6 @@ Partial Class Main
         Me.tbRutaLocal.Name = "tbRutaLocal"
         Me.tbRutaLocal.Size = New System.Drawing.Size(383, 20)
         Me.tbRutaLocal.TabIndex = 2
-        Me.tbRutaLocal.Text = "D:\Usuario\Escritorio\pruebas"
         Me.ToolTips.SetToolTip(Me.tbRutaLocal, "Ruta local que se sincronizara con la ruta en la nube")
         '
         'Label2
@@ -83,18 +82,17 @@ Partial Class Main
         '
         'btnStart
         '
-        Me.btnStart.Location = New System.Drawing.Point(139, 180)
+        Me.btnStart.Location = New System.Drawing.Point(139, 217)
         Me.btnStart.Name = "btnStart"
         Me.btnStart.Size = New System.Drawing.Size(132, 41)
         Me.btnStart.TabIndex = 0
-        Me.btnStart.Text = "Comenzar"
+        Me.btnStart.Text = "Sincronizar"
         Me.ToolTips.SetToolTip(Me.btnStart, "Comienza la sincronizacion")
         Me.btnStart.UseVisualStyleBackColor = True
         '
         'btnConfigFile
         '
-        Me.btnConfigFile.Enabled = False
-        Me.btnConfigFile.Location = New System.Drawing.Point(129, 227)
+        Me.btnConfigFile.Location = New System.Drawing.Point(129, 264)
         Me.btnConfigFile.Name = "btnConfigFile"
         Me.btnConfigFile.Size = New System.Drawing.Size(153, 23)
         Me.btnConfigFile.TabIndex = 4
@@ -108,7 +106,7 @@ Partial Class Main
         Me.GroupBox1.Controls.Add(Me.btnVerOmitidoFichero)
         Me.GroupBox1.Controls.Add(Me.btnOmitirCarpeta)
         Me.GroupBox1.Controls.Add(Me.btnOmitirFichero)
-        Me.GroupBox1.Location = New System.Drawing.Point(77, 311)
+        Me.GroupBox1.Location = New System.Drawing.Point(77, 348)
         Me.GroupBox1.Name = "GroupBox1"
         Me.GroupBox1.Size = New System.Drawing.Size(280, 101)
         Me.GroupBox1.TabIndex = 1
@@ -157,6 +155,7 @@ Partial Class Main
         '
         'GroupBox2
         '
+        Me.GroupBox2.Controls.Add(Me.CheckBox1)
         Me.GroupBox2.Controls.Add(Me.nudSyncTime)
         Me.GroupBox2.Controls.Add(Me.Label3)
         Me.GroupBox2.Controls.Add(Me.Label1)
@@ -167,14 +166,15 @@ Partial Class Main
         Me.GroupBox2.Controls.Add(Me.tbRutaLocal)
         Me.GroupBox2.Location = New System.Drawing.Point(12, 49)
         Me.GroupBox2.Name = "GroupBox2"
-        Me.GroupBox2.Size = New System.Drawing.Size(410, 256)
+        Me.GroupBox2.Size = New System.Drawing.Size(410, 293)
         Me.GroupBox2.TabIndex = 0
         Me.GroupBox2.TabStop = False
         Me.GroupBox2.Text = "Sincronizacion "
         '
         'nudSyncTime
         '
-        Me.nudSyncTime.Location = New System.Drawing.Point(65, 130)
+        Me.nudSyncTime.Enabled = False
+        Me.nudSyncTime.Location = New System.Drawing.Point(59, 149)
         Me.nudSyncTime.Maximum = New Decimal(New Integer() {999999, 0, 0, 0})
         Me.nudSyncTime.Minimum = New Decimal(New Integer() {10, 0, 0, 0})
         Me.nudSyncTime.Name = "nudSyncTime"
@@ -186,17 +186,31 @@ Partial Class Main
         'Label3
         '
         Me.Label3.AutoSize = True
-        Me.Label3.Location = New System.Drawing.Point(6, 132)
+        Me.Label3.Enabled = False
+        Me.Label3.Location = New System.Drawing.Point(26, 151)
         Me.Label3.Name = "Label3"
-        Me.Label3.Size = New System.Drawing.Size(182, 13)
+        Me.Label3.Size = New System.Drawing.Size(156, 13)
         Me.Label3.TabIndex = 7
-        Me.Label3.Text = "Sync cada                          segundos"
+        Me.Label3.Text = "Cada                          segundos"
         '
         'TrayIcon
         '
         Me.TrayIcon.Icon = CType(resources.GetObject("TrayIcon.Icon"), System.Drawing.Icon)
         Me.TrayIcon.Text = "CloudDesktopManager"
         Me.TrayIcon.Visible = True
+        '
+        'CheckBox1
+        '
+        Me.CheckBox1.AutoSize = True
+        Me.CheckBox1.Location = New System.Drawing.Point(9, 131)
+        Me.CheckBox1.Name = "CheckBox1"
+        Me.CheckBox1.Size = New System.Drawing.Size(105, 17)
+        Me.CheckBox1.TabIndex = 8
+        Me.CheckBox1.Text = "Sync automatico"
+        Me.ToolTips.SetToolTip(Me.CheckBox1, "De estar activo, la sincronizacion se realizara segun el tiempo indicado." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "De no " &
+        "estar activo, la sincronizacion debera ser manual, clicando en el boton Sincroni" &
+        "zar")
+        Me.CheckBox1.UseVisualStyleBackColor = True
         '
         'Main
         '
@@ -235,4 +249,5 @@ Partial Class Main
     Friend WithEvents btnVerOmitidoCarpeta As Button
     Friend WithEvents btnVerOmitidoFichero As Button
     Friend WithEvents ToolTips As ToolTip
+    Friend WithEvents CheckBox1 As CheckBox
 End Class

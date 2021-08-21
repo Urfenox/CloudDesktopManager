@@ -1,4 +1,5 @@
-﻿Imports Microsoft.Win32
+﻿Imports System.IO.Compression
+Imports Microsoft.Win32
 Public Class Main
     Dim DIRCommons As String = "C:\Users\" & Environment.UserName & "\AppData\Local\CRZ_Labs\CloudDesktopManager"
 
@@ -6,6 +7,7 @@ Public Class Main
     Dim RemoteSyncThread As Threading.Thread
     Dim LocalSyncThreadStatus As Boolean = False
     Dim RemoteSyncThreadStatus As Boolean = False
+    Dim IsAutoSync As Boolean = False
 
     Dim RutaNube As String
     Dim RutaLocal As String
@@ -69,6 +71,19 @@ Public Class Main
     Private Sub btnVerOmitidoCarpeta_Click(sender As Object, e As EventArgs) Handles btnVerOmitidoCarpeta.Click
         Process.Start("notepad.exe", DIRCommons & "\folderSkip.lst")
     End Sub
+    Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
+        If CheckBox1.Checked = True Then
+            btnStart.Text = "Comenzar"
+            Label3.Enabled = True
+            nudSyncTime.Enabled = True
+            IsAutoSync = True
+        Else
+            btnStart.Text = "Sincronizar"
+            Label3.Enabled = False
+            nudSyncTime.Enabled = False
+            IsAutoSync = False
+        End If
+    End Sub
     Private Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
         Try
             If tbRutaRemota.Text = Nothing Or tbRutaLocal.Text = Nothing Or nudSyncTime.Value = 0 Then
@@ -96,6 +111,7 @@ Public Class Main
                     RemoteSyncThread.Start()
                     RemoteSyncThreadStatus = True
                 End If
+
                 btnStart.Enabled = False
             End If
         Catch ex As Exception
@@ -111,7 +127,7 @@ Public Class Main
     '           Esto se hacer asi para no ir guardando una lista
     Sub GetNubeFilesAndFolders()
         Try
-            While True 'algun coso para romper esto.
+            While True
                 'Files
                 For Each item As String In My.Computer.FileSystem.GetFiles(RutaNube)
                     'Toma el archivo, y ve si existe un acceso directo en el escritorio
@@ -138,8 +154,13 @@ Public Class Main
                         CreateFolderLNKRemoto(item)
                     End If
                 Next 'Pass 20/08/2021 08:14 PM
-                Threading.Thread.Sleep(Val(nudSyncTime.Value & "000")) 'ESPERAR
+                If IsAutoSync = True Then
+                    Threading.Thread.Sleep(Val(nudSyncTime.Value & "000")) 'ESPERAR
+                Else
+                    Exit While
+                End If
             End While
+            RemoteSyncThread.Abort()
         Catch ex As Exception
             btnStart.Enabled = True
             RemoteSyncThreadStatus = False
@@ -185,7 +206,7 @@ Public Class Main
     '   Cuano se encuentre una archivo/carpeta en el escritorio, lo meta en la Nube y haga el acceso directo
     Sub GetLocalFilesAndFolders()
         Try
-            While True 'algun coso para romper esto.
+            While True
                 For Each item As String In My.Computer.FileSystem.GetFiles(RutaLocal)
                     'Toma el archivo y ve si existe un LNK (acceso directo)
                     If item.Contains("desktop.ini") = False Then
@@ -213,8 +234,13 @@ Public Class Main
                         CreateFolderLNKLocal(item)
                     End If
                 Next 'Funciona. Pass 20/08/2021 07:23 PM
-                Threading.Thread.Sleep(Val(nudSyncTime.Value & "000")) 'ESPERAR
+                If IsAutoSync = True Then
+                    Threading.Thread.Sleep(Val(nudSyncTime.Value & "000")) 'ESPERAR
+                Else
+                    Exit While
+                End If
             End While
+            LocalSyncThread.Abort()
         Catch ex As Exception
             btnStart.Enabled = True
             LocalSyncThreadStatus = True
@@ -254,27 +280,6 @@ Public Class Main
         End Try
     End Sub
 #End Region
-
-#Region "App Config Files"
-    Private Sub btnConfigFile_Click(sender As Object, e As EventArgs) Handles btnConfigFile.Click
-        If MessageBox.Show("¿Quiere importar un Archivo de Configuracion?" & vbCrLf & "Si quiere explorar, clic en 'No'", "Config file", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
-            'Si (importar)
-            Dim OpenFile As New OpenFileDialog
-            OpenFile.Title = "Abrir archivo..."
-            OpenFile.Filter = "ConfigFile(*.cfg)|*.cfg|All file types(*.*)|*.*"
-            If OpenFile.ShowDialog() = DialogResult.OK Then
-                ReadConfig()
-            End If
-        Else
-            'No (exportar)
-            Dim SaveFile As New SaveFileDialog
-            SaveFile.Title = "Guardar archivo..."
-            SaveFile.Filter = "ConfigFile(*.cfg)|*.cfg|All file types(*.*)|*.*"
-            If SaveFile.ShowDialog() = DialogResult.OK Then
-                SaveConfig()
-            End If
-        End If
-    End Sub
     Sub SaveConfig()
         Try
             Dim RutaBaseDatos As String = "SOFTWARE\\CRZ Labs\\CloudDesktopManager"
@@ -288,7 +293,9 @@ Public Class Main
             BaseDataRegeditWriter.SetValue("Ruta_Nube", RutaNube, RegistryValueKind.String)
             BaseDataRegeditWriter.SetValue("Ruta_Local", RutaLocal, RegistryValueKind.String)
             BaseDataRegeditWriter.SetValue("SyncTimer", nudSyncTime.Value, RegistryValueKind.String)
+            BaseDataRegeditWriter.SetValue("AutoSync", CheckBox1.Checked, RegistryValueKind.String)
 
+            ReadConfig()
         Catch ex As Exception
             AddToLog("[SaveConfigFile@Main]", "Error: " & ex.Message, True)
         End Try
@@ -310,9 +317,76 @@ Public Class Main
             tbRutaRemota.Text = RutaNube
             tbRutaLocal.Text = RutaLocal
             nudSyncTime.Value = BaseDataRegeditReader.GetValue("SyncTimer")
+            CheckBox1.Checked = Boolean.Parse(BaseDataRegeditReader.GetValue("AutoSync"))
 
         Catch ex As Exception
             AddToLog("[ReadConfigFile@Main]", "Error: " & ex.Message, True)
+        End Try
+    End Sub
+#Region "App Config Files"
+    Private Sub btnConfigFile_Click(sender As Object, e As EventArgs) Handles btnConfigFile.Click
+        If MessageBox.Show("¿Quiere importar un Archivo de Configuracion?" & vbCrLf & "Si quiere explorar, clic en 'No'", "Config file", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
+            'Si (importar)
+            Dim OpenFile As New OpenFileDialog
+            OpenFile.Title = "Abrir archivo..."
+            OpenFile.Filter = "ZIP File(*.zip)|*.zip|All file types(*.*)|*.*"
+            If OpenFile.ShowDialog() = DialogResult.OK Then
+                LoadConfigFile(OpenFile.FileName)
+            End If
+        Else
+            'No (exportar)
+            Dim SaveFile As New SaveFileDialog
+            SaveFile.Title = "Guardar archivo..."
+            SaveFile.Filter = "ZIP File(*.zip)|*.zip|All file types(*.*)|*.*"
+            If SaveFile.ShowDialog() = DialogResult.OK Then
+                SaveConfigFile(SaveFile.FileName)
+            End If
+        End If
+    End Sub
+    Sub SaveConfigFile(ByVal filePath As String)
+        Try
+            If My.Computer.FileSystem.FileExists(filePath) = True Then
+                My.Computer.FileSystem.DeleteFile(filePath)
+            End If
+
+            'guardar en un .cfg los datos que se guardan en el registro
+            My.Computer.FileSystem.WriteAllText(DIRCommons & "\Config.cfg", "# CloudDesktopManager Config" &
+                                                vbCrLf & RutaNube & 'Ruta_Nube
+                                                vbCrLf & RutaLocal & 'Ruta_Local
+                                                vbCrLf & nudSyncTime.Value & 'SyncTimer
+                                                vbCrLf & CheckBox1.Checked, False)
+
+            'comprimir los archivos fileSkip.lst, folderSkip.lst y el .cfg y tirarlo a donde el usuario indica
+            ZipFile.CreateFromDirectory(DIRCommons, filePath)
+
+            'muestra confirmacion
+            MsgBox("Se ha creado el archivo de configuracion correctamente", MsgBoxStyle.Information, "Archivo de Configuracion")
+        Catch ex As Exception
+            MsgBox("No se logro crear el archivo de configuracion", MsgBoxStyle.Critical, "Archivo de Configuracion")
+            AddToLog("[SaveConfigFile@Main]", "Error: " & ex.Message, True)
+        End Try
+    End Sub
+    Sub LoadConfigFile(ByVal filePath As String)
+        Try
+            'descomprimir el zip en el directorio principal (asi los archivos de omision se completan automaticamente)
+            ZipFile.ExtractToDirectory(filePath, DIRCommons)
+
+            'leer el coso
+            Dim lineas = IO.File.ReadLines(DIRCommons & "\Config.cfg")
+            RutaNube = lineas(1)
+            RutaLocal = lineas(2)
+            nudSyncTime.Value = lineas(3)
+            CheckBox1.Checked = Boolean.Parse(lineas(4))
+            SaveConfig()
+
+            'muestra confirmacion
+            MsgBox("Se ha leido el archivo de configuracion correctamente" & vbCrLf & "Vuelva a iniciar el programa", MsgBoxStyle.Information, "Archivo de Configuracion")
+
+            'cerrado forzoso (para no sobreescribir los archivos skip)
+            End
+        Catch ex As Exception
+            MsgBox("No se logro entender el archivo de configuracion", MsgBoxStyle.Critical, "Archivo de Configuracion")
+            AddToLog("[LoadConfigFile@Main]", "Error: " & ex.Message, True)
         End Try
     End Sub
 
@@ -379,9 +453,11 @@ Public Class Main
             If My.Computer.FileSystem.FileExists(folderSkipPath) Then
                 My.Computer.FileSystem.DeleteFile(folderSkipPath)
             End If
-            'My.Computer.FileSystem.WriteAllText(folderSkipPath, "Shared Folder", False)
+            My.Computer.FileSystem.WriteAllText(folderSkipPath, "My Shared Folder", False)
             For Each skipFolder As String In folderSkip
-                My.Computer.FileSystem.WriteAllText(folderSkipPath, skipFolder, True)
+                If skipFolder <> "My Shared Folder" Then
+                    My.Computer.FileSystem.WriteAllText(folderSkipPath, vbCrLf & skipFolder, True)
+                End If
             Next
             ReadSkipFolder()
         Catch ex As Exception
@@ -393,12 +469,15 @@ Public Class Main
             folderSkip.Clear()
             Dim folderSkipPath As String = DIRCommons & "\folderSkip.lst"
             For Each item As String In IO.File.ReadLines(folderSkipPath)
-                folderSkip.Add(item)
+                If item <> "My Shared Folder" Then
+                    folderSkip.Add(item)
+                End If
             Next
         Catch ex As Exception
             AddToLog("[ReadSkipFolder@Main]", "Error: " & ex.Message, True)
         End Try
     End Sub
+
 #End Region
 End Class
 'Idea principal
