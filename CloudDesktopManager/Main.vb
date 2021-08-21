@@ -15,24 +15,9 @@ Public Class Main
     Dim fileSkip As New ArrayList
     Dim folderSkip As New ArrayList
 
-    Sub AddToLog(ByVal from As String, ByVal content As String, Optional ByVal flag As Boolean = False)
-        Try
-            Dim finalContent As String
-            If flag = True Then
-                finalContent = "[!!!]" & content
-            Else
-                finalContent = content
-            End If
-            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss tt dd/MM/yyyy ") & from & " " & finalContent)
-        Catch ex As Exception
-            Console.WriteLine("[AddToLog@Main]Error: " & ex.Message)
-        End Try
-    End Sub
-
     Private Sub Main_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         SaveSkipFiles()
         SaveSkipFolder()
-        'seria algo bonito cerrar los threads antes de cerrar.
         End
     End Sub
 
@@ -54,36 +39,7 @@ Public Class Main
         ReadConfig()
     End Sub
 
-    Private Sub Main_Resize(sender As Object, e As EventArgs) Handles Me.Resize
-        Select Case WindowState
-            Case FormWindowState.Minimized
-                Me.Hide()
-        End Select
-    End Sub
-    Private Sub TrayIcon_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles TrayIcon.MouseDoubleClick
-        Me.Show()
-        Me.Focus()
-        Me.CenterToScreen()
-    End Sub
-    Private Sub btnVerOmitidoFichero_Click(sender As Object, e As EventArgs) Handles btnVerOmitidoFichero.Click
-        Process.Start("notepad.exe", DIRCommons & "\fileSkip.lst")
-    End Sub
-    Private Sub btnVerOmitidoCarpeta_Click(sender As Object, e As EventArgs) Handles btnVerOmitidoCarpeta.Click
-        Process.Start("notepad.exe", DIRCommons & "\folderSkip.lst")
-    End Sub
-    Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
-        If CheckBox1.Checked = True Then
-            btnStart.Text = "Comenzar"
-            Label3.Enabled = True
-            nudSyncTime.Enabled = True
-            IsAutoSync = True
-        Else
-            btnStart.Text = "Sincronizar"
-            Label3.Enabled = False
-            nudSyncTime.Enabled = False
-            IsAutoSync = False
-        End If
-    End Sub
+#Region "Objetos, controles"
     Private Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
         Try
             If tbRutaRemota.Text = Nothing Or tbRutaLocal.Text = Nothing Or nudSyncTime.Value = 0 Then
@@ -119,46 +75,92 @@ Public Class Main
         End Try
     End Sub
 
+    Sub AddToLog(ByVal from As String, ByVal content As String, Optional ByVal flag As Boolean = False)
+        Try
+            Dim finalContent As String
+            If flag = True Then
+                finalContent = "[!!!]" & content
+            Else
+                finalContent = content
+            End If
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss tt dd/MM/yyyy ") & from & " " & finalContent)
+            ShowNotify(1000, "O-Onichan, A-algo ha fallado A///W///A", content, ToolTipIcon.Error)
+        Catch ex As Exception
+            Console.WriteLine("[AddToLog@Main]Error: " & ex.Message)
+        End Try
+    End Sub
+
+    Sub ShowNotify(ByVal timeout As Integer, ByVal title As String, ByVal text As String, ByVal icon As ToolTipIcon)
+        If cbShowNotify.Checked = True Then
+            TrayIcon.ShowBalloonTip(1000, title, text, icon)
+        End If
+    End Sub
+
+    Private Sub Main_Resize(sender As Object, e As EventArgs) Handles Me.Resize
+        Select Case WindowState
+            Case FormWindowState.Minimized
+                Me.Hide()
+        End Select
+    End Sub
+    Private Sub TrayIcon_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles TrayIcon.MouseDoubleClick
+        Me.Show()
+        Me.Focus()
+        Me.CenterToScreen()
+    End Sub
+    Private Sub btnVerOmitidoFichero_Click(sender As Object, e As EventArgs) Handles btnVerOmitidoFichero.Click
+        Process.Start("notepad.exe", DIRCommons & "\fileSkip.lst")
+    End Sub
+    Private Sub btnVerOmitidoCarpeta_Click(sender As Object, e As EventArgs) Handles btnVerOmitidoCarpeta.Click
+        Process.Start("notepad.exe", DIRCommons & "\folderSkip.lst")
+    End Sub
+    Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
+        If CheckBox1.Checked = True Then
+            btnStart.Text = "Comenzar"
+            Label3.Enabled = True
+            nudSyncTime.Enabled = True
+            IsAutoSync = True
+        Else
+            btnStart.Text = "Sincronizar"
+            Label3.Enabled = False
+            nudSyncTime.Enabled = False
+            IsAutoSync = False
+        End If
+    End Sub
+#End Region
+
 #Region "RemoteSync"
-    'La idea
-    '   Cuano se encuentre una archivo/carpeta en la nube se debe ver si su acceso directo en el escritorio existe
-    '       Si no existe, se crea
-    '       Si existe, se omite
-    '           Esto se hacer asi para no ir guardando una lista
     Sub GetNubeFilesAndFolders()
         Try
+            Dim syncCounter As Integer = 0
             While True
-                'Files
                 For Each item As String In My.Computer.FileSystem.GetFiles(RutaNube)
-                    'Toma el archivo, y ve si existe un acceso directo en el escritorio
-                    '   Si no, lo crea
-                    '   Si existe, lo omite
                     If item.Contains("desktop.ini") = False Then
                         Dim FileName As String = IO.Path.GetFileNameWithoutExtension(item)
                         If My.Computer.FileSystem.FileExists(RutaLocal & "\" & FileName & ".lnk") = False Then
-                            'No existe el LNK. se debe crear
+                            syncCounter += 1
                             CreateFileLNKRemoto(item)
                         End If
                     End If
-                Next 'Pass 20/08/2021 08:12 PM
+                Next 'Funciona.
 
-                'Folders
                 For Each item As String In My.Computer.FileSystem.GetDirectories(RutaNube)
-                    'Toma la carpeta, y ve si existe un acceso directo en el escritorio
-                    '   Si no, lo crea
-                    '   Si existe, lo omite
                     Dim FolderName As String = item
                     FolderName = FolderName.Remove(0, FolderName.LastIndexOf("\") + 1)
                     If My.Computer.FileSystem.FileExists(RutaLocal & "\" & FolderName & ".lnk") = False Then
-                        'No existe el LNK. se debe crear
+                        syncCounter += 1
                         CreateFolderLNKRemoto(item)
                     End If
-                Next 'Pass 20/08/2021 08:14 PM
+                Next 'Funciona.
                 If IsAutoSync = True Then
+                    If syncCounter <> 0 Then
+                        ShowNotify(1000, "Se ha sincronizado", "Sincronizados a local " & syncCounter & " Archivos/Carpetas", ToolTipIcon.Info)
+                    End If
                     Threading.Thread.Sleep(Val(nudSyncTime.Value & "000")) 'ESPERAR
                 Else
+                    syncCounter = 0
                     Exit While
                 End If
+                syncCounter = 0
             End While
             RemoteSyncThread.Abort()
         Catch ex As Exception
@@ -166,17 +168,15 @@ Public Class Main
             RemoteSyncThreadStatus = False
             AddToLog("[GetNubeFilesAndFolders@Main]", "Error: " & ex.Message, True)
         End Try
-    End Sub
+    End Sub 'Pass 21/08/2021
 
     Sub CreateFileLNKRemoto(ByVal item As String)
         Try
             Dim WSHShell As Object = CreateObject("WScript.Shell")
             Dim Shortcut As Object
-            'Formato ejemplo
-            '   C:\.1.\.2.\.3.\Hola.txt
-            Dim fileName As String = IO.Path.GetFileName(item) 'Obtiene el nombre del archivo (Hola.txt)
-            Dim filePath As String = IO.Path.GetDirectoryName(item) 'Obtiene la ruta del archivo (C:\.1.\.2.\.3.)
-            Dim fileNameNoExt As String = IO.Path.GetFileNameWithoutExtension(fileName) 'Obtiene el nombre sin extencion del archivo (Hola)
+            Dim fileName As String = IO.Path.GetFileName(item)
+            Dim filePath As String = IO.Path.GetDirectoryName(item)
+            Dim fileNameNoExt As String = IO.Path.GetFileNameWithoutExtension(fileName)
             Shortcut = WSHShell.CreateShortcut(RutaLocal & "\" & fileNameNoExt & ".lnk")
             Shortcut.TargetPath = RutaNube & "\" & fileName
             Shortcut.Save()
@@ -188,10 +188,8 @@ Public Class Main
         Try
             Dim WSHShell As Object = CreateObject("WScript.Shell")
             Dim Shortcut As Object
-            'Formato ejemplo
-            '   C:\.1.\.2.\.3.\Hola.txt
-            Dim FolderName As String = item 'FolderName = "C:\.1.\.2.\.3.\RutaLocal\SubFolder"
-            FolderName = FolderName.Remove(0, FolderName.LastIndexOf("\") + 1) 'FolderName = "SubFolder"
+            Dim FolderName As String = item
+            FolderName = FolderName.Remove(0, FolderName.LastIndexOf("\") + 1)
             Shortcut = WSHShell.CreateShortcut(RutaLocal & "\" & FolderName & ".lnk")
             Shortcut.TargetPath = RutaNube & "\" & FolderName
             Shortcut.Save()
@@ -202,43 +200,44 @@ Public Class Main
 #End Region
 
 #Region "LocalSync"
-    'La idea
-    '   Cuano se encuentre una archivo/carpeta en el escritorio, lo meta en la Nube y haga el acceso directo
     Sub GetLocalFilesAndFolders()
         Try
+            Dim syncCounter As Integer = 0
             While True
                 For Each item As String In My.Computer.FileSystem.GetFiles(RutaLocal)
-                    'Toma el archivo y ve si existe un LNK (acceso directo)
                     If item.Contains("desktop.ini") = False Then
-                        If item.Contains(".lnk") = False Then 'Omite los LNK
+                        If item.Contains(".lnk") = False Then
                             Dim FileName As String = IO.Path.GetFileName(item)
                             Dim result = fileSkip.ToArray().Any(Function(x) x.ToString().Contains(FileName))
-                            If result = False Then 'Si es True, entonces el archivo esta en la lista de omitidos, si no, entonces se debe subir a la nube
-                                'copiar a la nube, crear acceso directo
+                            If result = False Then
+                                syncCounter += 1
                                 My.Computer.FileSystem.MoveFile(RutaLocal & "\" & FileName, RutaNube & "\" & FileName, True)
-                                CreateFileLNKLocal(item) 'pasa la ruta completa uwu
+                                CreateFileLNKLocal(item)
                             End If
                         End If
                     End If
-                Next 'Funciona. Pass 20/08/2021 07:23 PM
+                Next 'Funciona.
 
                 For Each item As String In My.Computer.FileSystem.GetDirectories(RutaLocal)
-                    'Toma la carpeta y crear acceso directo (cuz el LNK no se toma como carpeta, si no como archivo :D)
-                    'Formato de ejemplo
-                    '   C:\.1.\.2.\.3.\RutaLocal\SubFolder
-                    Dim FolderName As String = item 'FolderName = "C:\.1.\.2.\.3.\RutaLocal\SubFolder"
-                    FolderName = FolderName.Remove(0, FolderName.LastIndexOf("\") + 1) 'FolderName = "SubFolder"
+                    Dim FolderName As String = item
+                    FolderName = FolderName.Remove(0, FolderName.LastIndexOf("\") + 1)
                     Dim result = folderSkip.ToArray().Any(Function(x) x.ToString().Contains(FolderName))
                     If result = False Then
+                        syncCounter += 1
                         My.Computer.FileSystem.MoveDirectory(item, RutaNube & "\" & FolderName, True)
                         CreateFolderLNKLocal(item)
                     End If
-                Next 'Funciona. Pass 20/08/2021 07:23 PM
+                Next 'Funciona.
                 If IsAutoSync = True Then
+                    If syncCounter <> 0 Then
+                        ShowNotify(1000, "Se ha sincronizado", "Sincronizados a la nube " & syncCounter & " Archivos/Carpetas", ToolTipIcon.Info)
+                    End If
                     Threading.Thread.Sleep(Val(nudSyncTime.Value & "000")) 'ESPERAR
                 Else
+                    syncCounter = 0
                     Exit While
                 End If
+                syncCounter = 0
             End While
             LocalSyncThread.Abort()
         Catch ex As Exception
@@ -246,17 +245,15 @@ Public Class Main
             LocalSyncThreadStatus = True
             AddToLog("[GetLocalFilesAndFolders@Main]", "Error: " & ex.Message, True)
         End Try
-    End Sub 'Pass 20/08/2021 07:47 PM. Faltan pruebas, aun asi creo que ira bien.
+    End Sub 'Pass 21/08/2021
 
     Sub CreateFileLNKLocal(ByVal item As String)
         Try
             Dim WSHShell As Object = CreateObject("WScript.Shell")
             Dim Shortcut As Object
-            'Formato ejemplo
-            '   C:\.1.\.2.\.3.\Hola.txt
-            Dim fileName As String = IO.Path.GetFileName(item) 'Obtiene el nombre del archivo (Hola.txt)
-            Dim filePath As String = IO.Path.GetDirectoryName(item) 'Obtiene la ruta del archivo (C:\.1.\.2.\.3.)
-            Dim fileNameNoExt As String = IO.Path.GetFileNameWithoutExtension(fileName) 'Obtiene el nombre sin extencion del archivo (Hola)
+            Dim fileName As String = IO.Path.GetFileName(item)
+            Dim filePath As String = IO.Path.GetDirectoryName(item)
+            Dim fileNameNoExt As String = IO.Path.GetFileNameWithoutExtension(fileName)
             Shortcut = WSHShell.CreateShortcut(RutaLocal & "\" & fileNameNoExt & ".lnk")
             Shortcut.TargetPath = RutaNube & "\" & fileName
             Shortcut.Save()
@@ -268,10 +265,8 @@ Public Class Main
         Try
             Dim WSHShell As Object = CreateObject("WScript.Shell")
             Dim Shortcut As Object
-            'Formato ejemplo
-            '   C:\.1.\.2.\.3.\Hola.txt
-            Dim FolderName As String = item 'FolderName = "C:\.1.\.2.\.3.\RutaLocal\SubFolder"
-            FolderName = FolderName.Remove(0, FolderName.LastIndexOf("\") + 1) 'FolderName = "SubFolder"
+            Dim FolderName As String = item
+            FolderName = FolderName.Remove(0, FolderName.LastIndexOf("\") + 1)
             Shortcut = WSHShell.CreateShortcut(RutaLocal & "\" & FolderName & ".lnk")
             Shortcut.TargetPath = RutaNube & "\" & FolderName
             Shortcut.Save()
@@ -294,6 +289,7 @@ Public Class Main
             BaseDataRegeditWriter.SetValue("Ruta_Local", RutaLocal, RegistryValueKind.String)
             BaseDataRegeditWriter.SetValue("SyncTimer", nudSyncTime.Value, RegistryValueKind.String)
             BaseDataRegeditWriter.SetValue("AutoSync", CheckBox1.Checked, RegistryValueKind.String)
+            BaseDataRegeditWriter.SetValue("ShowNotify", cbShowNotify.Checked, RegistryValueKind.String)
 
             ReadConfig()
         Catch ex As Exception
@@ -318,6 +314,7 @@ Public Class Main
             tbRutaLocal.Text = RutaLocal
             nudSyncTime.Value = BaseDataRegeditReader.GetValue("SyncTimer")
             CheckBox1.Checked = Boolean.Parse(BaseDataRegeditReader.GetValue("AutoSync"))
+            cbShowNotify.Checked = Boolean.Parse(BaseDataRegeditReader.GetValue("ShowNotify"))
 
         Catch ex As Exception
             AddToLog("[ReadConfigFile@Main]", "Error: " & ex.Message, True)
@@ -348,18 +345,13 @@ Public Class Main
             If My.Computer.FileSystem.FileExists(filePath) = True Then
                 My.Computer.FileSystem.DeleteFile(filePath)
             End If
-
-            'guardar en un .cfg los datos que se guardan en el registro
             My.Computer.FileSystem.WriteAllText(DIRCommons & "\Config.cfg", "# CloudDesktopManager Config" &
                                                 vbCrLf & RutaNube & 'Ruta_Nube
                                                 vbCrLf & RutaLocal & 'Ruta_Local
                                                 vbCrLf & nudSyncTime.Value & 'SyncTimer
-                                                vbCrLf & CheckBox1.Checked, False)
-
-            'comprimir los archivos fileSkip.lst, folderSkip.lst y el .cfg y tirarlo a donde el usuario indica
+                                                vbCrLf & CheckBox1.Checked & 'AutoSync
+                                                vbCrLf & cbShowNotify.Checked, False)
             ZipFile.CreateFromDirectory(DIRCommons, filePath)
-
-            'muestra confirmacion
             MsgBox("Se ha creado el archivo de configuracion correctamente", MsgBoxStyle.Information, "Archivo de Configuracion")
         Catch ex As Exception
             MsgBox("No se logro crear el archivo de configuracion", MsgBoxStyle.Critical, "Archivo de Configuracion")
@@ -368,21 +360,15 @@ Public Class Main
     End Sub
     Sub LoadConfigFile(ByVal filePath As String)
         Try
-            'descomprimir el zip en el directorio principal (asi los archivos de omision se completan automaticamente)
             ZipFile.ExtractToDirectory(filePath, DIRCommons)
-
-            'leer el coso
             Dim lineas = IO.File.ReadLines(DIRCommons & "\Config.cfg")
             RutaNube = lineas(1)
             RutaLocal = lineas(2)
             nudSyncTime.Value = lineas(3)
             CheckBox1.Checked = Boolean.Parse(lineas(4))
+            cbShowNotify.Checked = Boolean.Parse(lineas(5))
             SaveConfig()
-
-            'muestra confirmacion
             MsgBox("Se ha leido el archivo de configuracion correctamente" & vbCrLf & "Vuelva a iniciar el programa", MsgBoxStyle.Information, "Archivo de Configuracion")
-
-            'cerrado forzoso (para no sobreescribir los archivos skip)
             End
         Catch ex As Exception
             MsgBox("No se logro entender el archivo de configuracion", MsgBoxStyle.Critical, "Archivo de Configuracion")
@@ -477,37 +463,5 @@ Public Class Main
             AddToLog("[ReadSkipFolder@Main]", "Error: " & ex.Message, True)
         End Try
     End Sub
-
 #End Region
 End Class
-'Idea principal
-'   Este programa es para administrar carpetas y archivos que se encuentren en el escritorio
-'   La razon del crearlo es que tengo OneDrive y ademas me encanta dejar carpetitas y archivos sueltos en el escritorio, y, me encantaria que esos archivos y cositas que dejo
-'   esten en el OneDrive, en la carpeta Escritorio de OneDrive, asi desde cualquier otro pc que yo tenga podre acceder a ello.
-'   La idea es que este programa tome los archivos y carpetas y los suba a esa carpeta en OneDrive y luego haga un acceso directo a ese archivo/carpeta y este lo deje en el escritorio real.
-'   De esta forma los archivos/carpetas estan en la nube, y solo tengo un acceso directo, como si estubiese ahi, pero no, estan en la nube.
-'   Asi que.
-'       Debe ser capaz de ver archivos y carpetas que se encuentre en el Escritorio real (desde ahora Desktop)
-'       Cuano los encuentre, los debe MOVER a el escritorio OneDrive (desde ahora Nube)
-'       Cuando los mueva, debe ir creando el acceso directo en el Desktop.
-'
-'LISTO
-'   Un problema seria
-'       Cuando un computador es servidor (el que mete todos los archivos/carpetas a la Nube)
-'       entonces un PC nuevo no sabria que hay archivos en la nube, por lo que no funcionaria
-'       Ambos programas deben ser capaz de:
-'           Si hay archivos/carpetas en la Nube, automaticamente se deben hacer el acceso directo
-'           Si no hay, pues no se hacen.
-'           Ambos programas, deben ser capaz de no interferir con el otro
-'               Ejemplo:
-'                   Si utilizo los programas al mismo tiempo, entonces el PC1 sube un archivo, entonces automaticamente el PC2 debera crear
-'                   el acceso directo en el Desktop
-'                   Tienen que ser capaces de funcionar asincronicamente, independiente uno del otro.
-'
-'PROHIBIDO USAR APIS
-'   La magia de el programa tambien puede ser que no solo permita OneDrive, si no que cualquier metodo que tenga guardado en nube
-'       Como DropBox, GoogleDrive, etc.
-'
-'Modular
-'   Para poder configurarlo
-'   Un archivo de configuracion importable y exportable se agradece, asi no tendriamos que configurarlo todo el tiempo que queramos agregar un nuevo PC

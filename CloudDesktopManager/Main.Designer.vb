@@ -36,11 +36,12 @@ Partial Class Main
         Me.btnOmitirCarpeta = New System.Windows.Forms.Button()
         Me.btnOmitirFichero = New System.Windows.Forms.Button()
         Me.GroupBox2 = New System.Windows.Forms.GroupBox()
+        Me.CheckBox1 = New System.Windows.Forms.CheckBox()
         Me.nudSyncTime = New System.Windows.Forms.NumericUpDown()
         Me.Label3 = New System.Windows.Forms.Label()
         Me.TrayIcon = New System.Windows.Forms.NotifyIcon(Me.components)
         Me.ToolTips = New System.Windows.Forms.ToolTip(Me.components)
-        Me.CheckBox1 = New System.Windows.Forms.CheckBox()
+        Me.cbShowNotify = New System.Windows.Forms.CheckBox()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
         CType(Me.nudSyncTime, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -155,6 +156,7 @@ Partial Class Main
         '
         'GroupBox2
         '
+        Me.GroupBox2.Controls.Add(Me.cbShowNotify)
         Me.GroupBox2.Controls.Add(Me.CheckBox1)
         Me.GroupBox2.Controls.Add(Me.nudSyncTime)
         Me.GroupBox2.Controls.Add(Me.Label3)
@@ -170,6 +172,19 @@ Partial Class Main
         Me.GroupBox2.TabIndex = 0
         Me.GroupBox2.TabStop = False
         Me.GroupBox2.Text = "Sincronizacion "
+        '
+        'CheckBox1
+        '
+        Me.CheckBox1.AutoSize = True
+        Me.CheckBox1.Location = New System.Drawing.Point(9, 131)
+        Me.CheckBox1.Name = "CheckBox1"
+        Me.CheckBox1.Size = New System.Drawing.Size(105, 17)
+        Me.CheckBox1.TabIndex = 8
+        Me.CheckBox1.Text = "Sync automatico"
+        Me.ToolTips.SetToolTip(Me.CheckBox1, "De estar activo, la sincronizacion se realizara segun el tiempo indicado." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "De no " &
+        "estar activo, la sincronizacion debera ser manual, clicando en el boton Sincroni" &
+        "zar")
+        Me.CheckBox1.UseVisualStyleBackColor = True
         '
         'nudSyncTime
         '
@@ -199,18 +214,16 @@ Partial Class Main
         Me.TrayIcon.Text = "CloudDesktopManager"
         Me.TrayIcon.Visible = True
         '
-        'CheckBox1
+        'cbShowNotify
         '
-        Me.CheckBox1.AutoSize = True
-        Me.CheckBox1.Location = New System.Drawing.Point(9, 131)
-        Me.CheckBox1.Name = "CheckBox1"
-        Me.CheckBox1.Size = New System.Drawing.Size(105, 17)
-        Me.CheckBox1.TabIndex = 8
-        Me.CheckBox1.Text = "Sync automatico"
-        Me.ToolTips.SetToolTip(Me.CheckBox1, "De estar activo, la sincronizacion se realizara segun el tiempo indicado." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "De no " &
-        "estar activo, la sincronizacion debera ser manual, clicando en el boton Sincroni" &
-        "zar")
-        Me.CheckBox1.UseVisualStyleBackColor = True
+        Me.cbShowNotify.AutoSize = True
+        Me.cbShowNotify.Location = New System.Drawing.Point(9, 184)
+        Me.cbShowNotify.Name = "cbShowNotify"
+        Me.cbShowNotify.Size = New System.Drawing.Size(129, 17)
+        Me.cbShowNotify.TabIndex = 9
+        Me.cbShowNotify.Text = "Mostrar notificaciones"
+        Me.ToolTips.SetToolTip(Me.cbShowNotify, "De estar activo, se mostraran notificaciones sobre el estado, errores y otros")
+        Me.cbShowNotify.UseVisualStyleBackColor = True
         '
         'Main
         '
@@ -250,4 +263,5 @@ Partial Class Main
     Friend WithEvents btnVerOmitidoFichero As Button
     Friend WithEvents ToolTips As ToolTip
     Friend WithEvents CheckBox1 As CheckBox
+    Friend WithEvents cbShowNotify As CheckBox
 End Class
