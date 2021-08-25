@@ -124,6 +124,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="AppLogo.ico" />
+    <None Include="Resources\AppLogo.ico" />
+    <None Include="Resources\UFX_AppsLogo_Waiting.ico" />
+    <None Include="Resources\UFX_AppsLogo_Stopped.ico" />
+    <None Include="Resources\UFX_AppsLogo_Ready.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

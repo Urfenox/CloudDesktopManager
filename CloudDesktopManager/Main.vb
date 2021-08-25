@@ -96,6 +96,16 @@ Public Class Main
         End If
     End Sub
 
+    Sub TrayIconStatus(ByVal icon As Icon)
+        Try
+            TrayIcon.Icon = icon
+            Me.Icon = icon
+            Me.Refresh()
+        Catch ex As Exception
+            AddToLog("[TrayIconStatus@Main]", "Error: " & ex.Message, True)
+        End Try
+    End Sub
+
     Private Sub Main_Resize(sender As Object, e As EventArgs) Handles Me.Resize
         Select Case WindowState
             Case FormWindowState.Minimized
@@ -133,6 +143,7 @@ Public Class Main
         Try
             Dim syncCounter As Integer = 0
             While True
+                TrayIconStatus(My.Resources.UFX_AppsLogo_Waiting)
                 For Each item As String In My.Computer.FileSystem.GetFiles(RutaNube)
                     If item.Contains("desktop.ini") = False Then
                         Dim FileName As String = IO.Path.GetFileNameWithoutExtension(item)
@@ -151,6 +162,7 @@ Public Class Main
                         CreateFolderLNKRemoto(item)
                     End If
                 Next 'Funciona.
+                TrayIconStatus(My.Resources.AppLogo)
                 If IsAutoSync = True Then
                     If syncCounter <> 0 Then
                         ShowNotify(1000, "Se ha sincronizado", "Sincronizados a local " & syncCounter & " Archivos/Carpetas", ToolTipIcon.Info)
@@ -164,6 +176,7 @@ Public Class Main
             End While
             RemoteSyncThread.Abort()
         Catch ex As Exception
+            TrayIconStatus(My.Resources.UFX_AppsLogo_Stopped)
             btnStart.Enabled = True
             RemoteSyncThreadStatus = False
             AddToLog("[GetNubeFilesAndFolders@Main]", "Error: " & ex.Message, True)
@@ -204,15 +217,19 @@ Public Class Main
         Try
             Dim syncCounter As Integer = 0
             While True
+                TrayIconStatus(My.Resources.UFX_AppsLogo_Waiting)
                 For Each item As String In My.Computer.FileSystem.GetFiles(RutaLocal)
                     If item.Contains("desktop.ini") = False Then
                         If item.Contains(".lnk") = False Then
                             Dim FileName As String = IO.Path.GetFileName(item)
                             Dim result = fileSkip.ToArray().Any(Function(x) x.ToString().Contains(FileName))
                             If result = False Then
-                                syncCounter += 1
-                                My.Computer.FileSystem.MoveFile(RutaLocal & "\" & FileName, RutaNube & "\" & FileName, True)
-                                CreateFileLNKLocal(item)
+                                Try
+                                    syncCounter += 1
+                                    My.Computer.FileSystem.MoveFile(RutaLocal & "\" & FileName, RutaNube & "\" & FileName, True)
+                                    CreateFileLNKLocal(item)
+                                Catch 'entendiendo que un archivo podria estar abierto
+                                End Try
                             End If
                         End If
                     End If
@@ -223,11 +240,15 @@ Public Class Main
                     FolderName = FolderName.Remove(0, FolderName.LastIndexOf("\") + 1)
                     Dim result = folderSkip.ToArray().Any(Function(x) x.ToString().Contains(FolderName))
                     If result = False Then
-                        syncCounter += 1
-                        My.Computer.FileSystem.MoveDirectory(item, RutaNube & "\" & FolderName, True)
-                        CreateFolderLNKLocal(item)
+                        Try
+                            syncCounter += 1
+                            My.Computer.FileSystem.MoveDirectory(item, RutaNube & "\" & FolderName, True)
+                            CreateFolderLNKLocal(item)
+                        Catch 'entendiendo que una carpeta esta siendo usada
+                        End Try
                     End If
                 Next 'Funciona.
+                TrayIconStatus(My.Resources.AppLogo)
                 If IsAutoSync = True Then
                     If syncCounter <> 0 Then
                         ShowNotify(1000, "Se ha sincronizado", "Sincronizados a la nube " & syncCounter & " Archivos/Carpetas", ToolTipIcon.Info)
@@ -241,6 +262,7 @@ Public Class Main
             End While
             LocalSyncThread.Abort()
         Catch ex As Exception
+            TrayIconStatus(My.Resources.UFX_AppsLogo_Stopped)
             btnStart.Enabled = True
             LocalSyncThreadStatus = True
             AddToLog("[GetLocalFilesAndFolders@Main]", "Error: " & ex.Message, True)

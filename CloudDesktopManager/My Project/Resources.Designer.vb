@@ -59,5 +59,45 @@ Namespace My.Resources
                 resourceCulture = value
             End Set
         End Property
+        
+        '''<summary>
+        '''  Busca un recurso adaptado de tipo System.Drawing.Icon similar a (Icono).
+        '''</summary>
+        Friend ReadOnly Property AppLogo() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("AppLogo", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca un recurso adaptado de tipo System.Drawing.Icon similar a (Icono).
+        '''</summary>
+        Friend ReadOnly Property UFX_AppsLogo_Ready() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("UFX_AppsLogo_Ready", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca un recurso adaptado de tipo System.Drawing.Icon similar a (Icono).
+        '''</summary>
+        Friend ReadOnly Property UFX_AppsLogo_Stopped() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("UFX_AppsLogo_Stopped", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Busca un recurso adaptado de tipo System.Drawing.Icon similar a (Icono).
+        '''</summary>
+        Friend ReadOnly Property UFX_AppsLogo_Waiting() As System.Drawing.Icon
+            Get
+                Dim obj As Object = ResourceManager.GetObject("UFX_AppsLogo_Waiting", resourceCulture)
+                Return CType(obj,System.Drawing.Icon)
+            End Get
+        End Property
     End Module
 End Namespace
