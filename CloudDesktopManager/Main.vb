@@ -8,12 +8,14 @@ Public Class Main
     Dim LocalSyncThreadStatus As Boolean = False
     Dim RemoteSyncThreadStatus As Boolean = False
     Dim IsAutoSync As Boolean = False
+    Dim SaveLog As Boolean = True 'True para desarrollo, False para version final estable
 
     Dim RutaNube As String
     Dim RutaLocal As String
 
     Dim fileSkip As New ArrayList
     Dim folderSkip As New ArrayList
+    Dim extensionSkip As New ArrayList
 
     Private Sub Main_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         SaveSkipFiles()
@@ -36,6 +38,12 @@ Public Class Main
         If My.Computer.FileSystem.FileExists(DIRCommons & "\folderSkip.lst") Then
             ReadSkipFolder()
         End If
+        If My.Computer.FileSystem.FileExists(DIRCommons & "\extensionSkip.lst") Then
+            ReadSkipExtension()
+        End If
+        If My.Computer.FileSystem.FileExists(DIRCommons & "\Activity.log") = False Then
+            My.Computer.FileSystem.WriteAllText(DIRCommons & "\Activity.log", My.Application.Info.AssemblyName & " " & My.Application.Info.Version.ToString & " (" & Application.ProductVersion & ")", False)
+        End If
         ReadConfig()
     End Sub
 
@@ -43,7 +51,7 @@ Public Class Main
     Private Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
         Try
             If tbRutaRemota.Text = Nothing Or tbRutaLocal.Text = Nothing Or nudSyncTime.Value = 0 Then
-                MsgBox("Rellene con la informacion solicitada", MsgBoxStyle.Critical, "Datos vacios")
+                MsgBox("Rellene con la información solicitada", MsgBoxStyle.Critical, "Datos vacíos")
             Else
                 RutaNube = tbRutaRemota.Text
                 RutaLocal = tbRutaLocal.Text
@@ -56,19 +64,23 @@ Public Class Main
                 If My.Computer.FileSystem.DirectoryExists(RutaNube) = False Then
                     My.Computer.FileSystem.CreateDirectory(RutaNube)
                 End If
-
-                If LocalSyncThreadStatus = False Then
-                    LocalSyncThread = New Threading.Thread(AddressOf GetLocalFilesAndFolders)
-                    LocalSyncThread.Start()
-                    LocalSyncThreadStatus = True
+                If IsAutoSync Then
+                    If LocalSyncThreadStatus = False Then
+                        LocalSyncThread = New Threading.Thread(AddressOf GetLocalFilesAndFolders)
+                        LocalSyncThread.Start()
+                        LocalSyncThreadStatus = True
+                    End If
+                    If RemoteSyncThreadStatus = False Then
+                        RemoteSyncThread = New Threading.Thread(AddressOf GetNubeFilesAndFolders)
+                        RemoteSyncThread.Start()
+                        RemoteSyncThreadStatus = True
+                    End If
+                    btnStart.Enabled = False
+                Else
+                    GetLocalFilesAndFolders()
+                    GetNubeFilesAndFolders()
+                    btnStart.Enabled = True
                 End If
-                If RemoteSyncThreadStatus = False Then
-                    RemoteSyncThread = New Threading.Thread(AddressOf GetNubeFilesAndFolders)
-                    RemoteSyncThread.Start()
-                    RemoteSyncThreadStatus = True
-                End If
-
-                btnStart.Enabled = False
             End If
         Catch ex As Exception
             AddToLog("[btnStart_Click@Main]", "Error: " & ex.Message, True)
@@ -80,11 +92,18 @@ Public Class Main
             Dim finalContent As String
             If flag = True Then
                 finalContent = "[!!!]" & content
+                ShowNotify(1000, "O-Onichan, A-algo ha fallado AwA", content, ToolTipIcon.Error)
             Else
                 finalContent = content
             End If
-            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss tt dd/MM/yyyy ") & from & " " & finalContent)
-            ShowNotify(1000, "O-Onichan, A-algo ha fallado A///W///A", content, ToolTipIcon.Error)
+            Dim Message As String = DateTime.Now.ToString("hh:mm:ss tt dd/MM/yyyy ") & from & " " & finalContent
+            Console.WriteLine(Message)
+            If SaveLog = True Then
+                Try
+                    My.Computer.FileSystem.WriteAllText(DIRCommons & "\Activity.log", vbCrLf & Message, True)
+                Catch
+                End Try
+            End If
         Catch ex As Exception
             Console.WriteLine("[AddToLog@Main]Error: " & ex.Message)
         End Try
@@ -112,16 +131,27 @@ Public Class Main
                 Me.Hide()
         End Select
     End Sub
+    Private Sub Main_HelpRequested(sender As Object, hlpevent As HelpEventArgs) Handles Me.HelpRequested
+        CommonLoad()
+        Me.Refresh()
+        Me.CenterToScreen()
+        If MessageBox.Show("¿Quiere ir al sitio web del software?", "Ayuda", MessageBoxButtons.YesNo, MessageBoxIcon.Information) = DialogResult.Yes Then
+            Process.Start("https://github.com/Urfenox/CloudDesktopManager")
+        End If
+    End Sub
     Private Sub TrayIcon_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles TrayIcon.MouseDoubleClick
         Me.Show()
+        Me.Refresh()
         Me.Focus()
-        Me.CenterToScreen()
     End Sub
     Private Sub btnVerOmitidoFichero_Click(sender As Object, e As EventArgs) Handles btnVerOmitidoFichero.Click
         Process.Start("notepad.exe", DIRCommons & "\fileSkip.lst")
     End Sub
     Private Sub btnVerOmitidoCarpeta_Click(sender As Object, e As EventArgs) Handles btnVerOmitidoCarpeta.Click
         Process.Start("notepad.exe", DIRCommons & "\folderSkip.lst")
+    End Sub
+    Private Sub btnVerOmitidoExtencion_Click(sender As Object, e As EventArgs) Handles btnVerOmitidoExtencion.Click
+        Process.Start("notepad.exe", DIRCommons & "\extensionSkip.lst")
     End Sub
     Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
         If CheckBox1.Checked = True Then
@@ -134,6 +164,12 @@ Public Class Main
             Label3.Enabled = False
             nudSyncTime.Enabled = False
             IsAutoSync = False
+            If LocalSyncThreadStatus = True Then
+                LocalSyncThread.Abort()
+            End If
+            If RemoteSyncThreadStatus = True Then
+                RemoteSyncThread.Abort()
+            End If
         End If
     End Sub
 #End Region
@@ -174,7 +210,6 @@ Public Class Main
                 End If
                 syncCounter = 0
             End While
-            RemoteSyncThread.Abort()
         Catch ex As Exception
             TrayIconStatus(My.Resources.UFX_AppsLogo_Stopped)
             btnStart.Enabled = True
@@ -223,12 +258,14 @@ Public Class Main
                         If item.Contains(".lnk") = False Then
                             Dim FileName As String = IO.Path.GetFileName(item)
                             Dim result = fileSkip.ToArray().Any(Function(x) x.ToString().Contains(FileName))
-                            If result = False Then
+                            Dim result2 = extensionSkip.ToArray().Any(Function(x) x.ToString().Contains(IO.Path.GetExtension(FileName)))
+                            If result = False And result2 = False Then
                                 Try
                                     syncCounter += 1
                                     My.Computer.FileSystem.MoveFile(RutaLocal & "\" & FileName, RutaNube & "\" & FileName, True)
                                     CreateFileLNKLocal(item)
-                                Catch 'entendiendo que un archivo podria estar abierto
+                                Catch ex As Exception 'entendiendo que un archivo podria estar abierto
+                                    AddToLog("[GetLocalFilesAndFolders(File)@Main]", "Error: " & ex.Message, False)
                                 End Try
                             End If
                         End If
@@ -244,7 +281,8 @@ Public Class Main
                             syncCounter += 1
                             My.Computer.FileSystem.MoveDirectory(item, RutaNube & "\" & FolderName, True)
                             CreateFolderLNKLocal(item)
-                        Catch 'entendiendo que una carpeta esta siendo usada
+                        Catch ex As Exception 'entendiendo que una carpeta esta siendo usada
+                            AddToLog("[GetLocalFilesAndFolders(Folder)@Main]", "Error: " & ex.Message, False)
                         End Try
                     End If
                 Next 'Funciona.
@@ -260,7 +298,6 @@ Public Class Main
                 End If
                 syncCounter = 0
             End While
-            LocalSyncThread.Abort()
         Catch ex As Exception
             TrayIconStatus(My.Resources.UFX_AppsLogo_Stopped)
             btnStart.Enabled = True
@@ -344,7 +381,7 @@ Public Class Main
     End Sub
 #Region "App Config Files"
     Private Sub btnConfigFile_Click(sender As Object, e As EventArgs) Handles btnConfigFile.Click
-        If MessageBox.Show("¿Quiere importar un Archivo de Configuracion?" & vbCrLf & "Si quiere explorar, clic en 'No'", "Config file", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
+        If MessageBox.Show("¿Quiere importar un Archivo de Configuración?" & vbCrLf & "Si quiere exportar, clic en 'No'", "Config file", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
             'Si (importar)
             Dim OpenFile As New OpenFileDialog
             OpenFile.Title = "Abrir archivo..."
@@ -374,9 +411,9 @@ Public Class Main
                                                 vbCrLf & CheckBox1.Checked & 'AutoSync
                                                 vbCrLf & cbShowNotify.Checked, False)
             ZipFile.CreateFromDirectory(DIRCommons, filePath)
-            MsgBox("Se ha creado el archivo de configuracion correctamente", MsgBoxStyle.Information, "Archivo de Configuracion")
+            MsgBox("Se ha creado el Archivo de Configuración correctamente", MsgBoxStyle.Information, "Archivo de Configuración")
         Catch ex As Exception
-            MsgBox("No se logro crear el archivo de configuracion", MsgBoxStyle.Critical, "Archivo de Configuracion")
+            MsgBox("No se logró crear el Archivo de Configuración", MsgBoxStyle.Critical, "Archivo de Configuración")
             AddToLog("[SaveConfigFile@Main]", "Error: " & ex.Message, True)
         End Try
     End Sub
@@ -390,10 +427,10 @@ Public Class Main
             CheckBox1.Checked = Boolean.Parse(lineas(4))
             cbShowNotify.Checked = Boolean.Parse(lineas(5))
             SaveConfig()
-            MsgBox("Se ha leido el archivo de configuracion correctamente" & vbCrLf & "Vuelva a iniciar el programa", MsgBoxStyle.Information, "Archivo de Configuracion")
+            MsgBox("Se ha leído el Archivo de Configuración correctamente" & vbCrLf & "Vuelva a iniciar el programa", MsgBoxStyle.Information, "Archivo de Configuración")
             End
         Catch ex As Exception
-            MsgBox("No se logro entender el archivo de configuracion", MsgBoxStyle.Critical, "Archivo de Configuracion")
+            MsgBox("No se logró entender el Archivo de Configuración", MsgBoxStyle.Critical, "Archivo de Configuración")
             AddToLog("[LoadConfigFile@Main]", "Error: " & ex.Message, True)
         End Try
     End Sub
@@ -483,6 +520,44 @@ Public Class Main
             Next
         Catch ex As Exception
             AddToLog("[ReadSkipFolder@Main]", "Error: " & ex.Message, True)
+        End Try
+    End Sub
+
+    Private Sub btnSkipExtension_Click(sender As Object, e As EventArgs) Handles btnOmitirExtencion.Click
+        Dim ExtensionInput = InputBox("Ingrese la extensión a omitir. Ejemplo: .nfo", "Omitir extensión")
+        If ExtensionInput <> Nothing Then
+            extensionSkip.Add(ExtensionInput)
+            SaveSkipExtension()
+        End If
+    End Sub
+    Sub SaveSkipExtension()
+        Try
+            Dim extensionSkipPath As String = DIRCommons & "\extensionSkip.lst"
+            If My.Computer.FileSystem.FileExists(extensionSkipPath) Then
+                My.Computer.FileSystem.DeleteFile(extensionSkipPath)
+            End If
+            My.Computer.FileSystem.WriteAllText(extensionSkipPath, ".ini", False)
+            For Each skipExtension As String In extensionSkip
+                If skipExtension <> ".ini" Then
+                    My.Computer.FileSystem.WriteAllText(extensionSkipPath, vbCrLf & skipExtension, True)
+                End If
+            Next
+            ReadSkipExtension()
+        Catch ex As Exception
+            AddToLog("[SaveSkipExtension@Main]", "Error: " & ex.Message, True)
+        End Try
+    End Sub
+    Sub ReadSkipExtension()
+        Try
+            extensionSkip.Clear()
+            Dim extensionSkipPath As String = DIRCommons & "\extensionSkip.lst"
+            For Each item As String In IO.File.ReadLines(extensionSkipPath)
+                If item <> ".ini" Then
+                    extensionSkip.Add(item)
+                End If
+            Next
+        Catch ex As Exception
+            AddToLog("[ReadSkipExtension@Main]", "Error: " & ex.Message, True)
         End Try
     End Sub
 #End Region

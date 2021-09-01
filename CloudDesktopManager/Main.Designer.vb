@@ -31,17 +31,19 @@ Partial Class Main
         Me.btnStart = New System.Windows.Forms.Button()
         Me.btnConfigFile = New System.Windows.Forms.Button()
         Me.GroupBox1 = New System.Windows.Forms.GroupBox()
+        Me.btnVerOmitidoExtencion = New System.Windows.Forms.Button()
+        Me.btnOmitirExtencion = New System.Windows.Forms.Button()
         Me.btnVerOmitidoCarpeta = New System.Windows.Forms.Button()
         Me.btnVerOmitidoFichero = New System.Windows.Forms.Button()
         Me.btnOmitirCarpeta = New System.Windows.Forms.Button()
         Me.btnOmitirFichero = New System.Windows.Forms.Button()
         Me.GroupBox2 = New System.Windows.Forms.GroupBox()
+        Me.cbShowNotify = New System.Windows.Forms.CheckBox()
         Me.CheckBox1 = New System.Windows.Forms.CheckBox()
         Me.nudSyncTime = New System.Windows.Forms.NumericUpDown()
         Me.Label3 = New System.Windows.Forms.Label()
         Me.TrayIcon = New System.Windows.Forms.NotifyIcon(Me.components)
         Me.ToolTips = New System.Windows.Forms.ToolTip(Me.components)
-        Me.cbShowNotify = New System.Windows.Forms.CheckBox()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
         CType(Me.nudSyncTime, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -62,7 +64,7 @@ Partial Class Main
         Me.tbRutaRemota.Name = "tbRutaRemota"
         Me.tbRutaRemota.Size = New System.Drawing.Size(383, 20)
         Me.tbRutaRemota.TabIndex = 1
-        Me.ToolTips.SetToolTip(Me.tbRutaRemota, "Ruta de la carpeta sincronizada con la nube")
+        Me.ToolTips.SetToolTip(Me.tbRutaRemota, "Ruta de la carpeta sincronizada con la nube.")
         '
         'tbRutaLocal
         '
@@ -70,7 +72,7 @@ Partial Class Main
         Me.tbRutaLocal.Name = "tbRutaLocal"
         Me.tbRutaLocal.Size = New System.Drawing.Size(383, 20)
         Me.tbRutaLocal.TabIndex = 2
-        Me.ToolTips.SetToolTip(Me.tbRutaLocal, "Ruta local que se sincronizara con la ruta en la nube")
+        Me.ToolTips.SetToolTip(Me.tbRutaLocal, "Ruta local que se sincronizara con la ruta en la nube.")
         '
         'Label2
         '
@@ -88,7 +90,7 @@ Partial Class Main
         Me.btnStart.Size = New System.Drawing.Size(132, 41)
         Me.btnStart.TabIndex = 0
         Me.btnStart.Text = "Sincronizar"
-        Me.ToolTips.SetToolTip(Me.btnStart, "Comienza la sincronizacion")
+        Me.ToolTips.SetToolTip(Me.btnStart, "Comienza la sincronización.")
         Me.btnStart.UseVisualStyleBackColor = True
         '
         'btnConfigFile
@@ -96,62 +98,85 @@ Partial Class Main
         Me.btnConfigFile.Location = New System.Drawing.Point(129, 264)
         Me.btnConfigFile.Name = "btnConfigFile"
         Me.btnConfigFile.Size = New System.Drawing.Size(153, 23)
-        Me.btnConfigFile.TabIndex = 4
-        Me.btnConfigFile.Text = "Archivo de Configuracion"
-        Me.ToolTips.SetToolTip(Me.btnConfigFile, "En desarrollo...")
+        Me.btnConfigFile.TabIndex = 6
+        Me.btnConfigFile.Text = "Archivo de Configuración"
+        Me.ToolTips.SetToolTip(Me.btnConfigFile, "Importa o exporta el archivo de configuración desde o para otra computadora.")
         Me.btnConfigFile.UseVisualStyleBackColor = True
         '
         'GroupBox1
         '
+        Me.GroupBox1.Controls.Add(Me.btnVerOmitidoExtencion)
+        Me.GroupBox1.Controls.Add(Me.btnOmitirExtencion)
         Me.GroupBox1.Controls.Add(Me.btnVerOmitidoCarpeta)
         Me.GroupBox1.Controls.Add(Me.btnVerOmitidoFichero)
         Me.GroupBox1.Controls.Add(Me.btnOmitirCarpeta)
         Me.GroupBox1.Controls.Add(Me.btnOmitirFichero)
-        Me.GroupBox1.Location = New System.Drawing.Point(77, 348)
+        Me.GroupBox1.Location = New System.Drawing.Point(124, 348)
         Me.GroupBox1.Name = "GroupBox1"
-        Me.GroupBox1.Size = New System.Drawing.Size(280, 101)
+        Me.GroupBox1.Size = New System.Drawing.Size(186, 109)
         Me.GroupBox1.TabIndex = 1
         Me.GroupBox1.TabStop = False
-        Me.GroupBox1.Text = "Omision"
+        Me.GroupBox1.Text = "Omisión"
+        '
+        'btnVerOmitidoExtencion
+        '
+        Me.btnVerOmitidoExtencion.Location = New System.Drawing.Point(132, 49)
+        Me.btnVerOmitidoExtencion.Name = "btnVerOmitidoExtencion"
+        Me.btnVerOmitidoExtencion.Size = New System.Drawing.Size(32, 23)
+        Me.btnVerOmitidoExtencion.TabIndex = 10
+        Me.btnVerOmitidoExtencion.Text = "Ver"
+        Me.ToolTips.SetToolTip(Me.btnVerOmitidoExtencion, "Ver las extensiones de archivo que están siendo omitidos.")
+        Me.btnVerOmitidoExtencion.UseVisualStyleBackColor = True
+        '
+        'btnOmitirExtencion
+        '
+        Me.btnOmitirExtencion.Location = New System.Drawing.Point(23, 49)
+        Me.btnOmitirExtencion.Name = "btnOmitirExtencion"
+        Me.btnOmitirExtencion.Size = New System.Drawing.Size(103, 23)
+        Me.btnOmitirExtencion.TabIndex = 9
+        Me.btnOmitirExtencion.Text = "Omitir extenciones"
+        Me.ToolTips.SetToolTip(Me.btnOmitirExtencion, "Evita que archivos con ciertas extensiones sean sincronizados, mantiene los en la" &
+        " ruta local.")
+        Me.btnOmitirExtencion.UseVisualStyleBackColor = True
         '
         'btnVerOmitidoCarpeta
         '
-        Me.btnVerOmitidoCarpeta.Location = New System.Drawing.Point(242, 58)
+        Me.btnVerOmitidoCarpeta.Location = New System.Drawing.Point(132, 78)
         Me.btnVerOmitidoCarpeta.Name = "btnVerOmitidoCarpeta"
         Me.btnVerOmitidoCarpeta.Size = New System.Drawing.Size(32, 23)
-        Me.btnVerOmitidoCarpeta.TabIndex = 8
+        Me.btnVerOmitidoCarpeta.TabIndex = 12
         Me.btnVerOmitidoCarpeta.Text = "Ver"
-        Me.ToolTips.SetToolTip(Me.btnVerOmitidoCarpeta, "Ver las carpetas que estan siendo omitidas")
+        Me.ToolTips.SetToolTip(Me.btnVerOmitidoCarpeta, "Ver las carpetas que están siendo omitidas.")
         Me.btnVerOmitidoCarpeta.UseVisualStyleBackColor = True
         '
         'btnVerOmitidoFichero
         '
-        Me.btnVerOmitidoFichero.Location = New System.Drawing.Point(242, 29)
+        Me.btnVerOmitidoFichero.Location = New System.Drawing.Point(132, 20)
         Me.btnVerOmitidoFichero.Name = "btnVerOmitidoFichero"
         Me.btnVerOmitidoFichero.Size = New System.Drawing.Size(32, 23)
-        Me.btnVerOmitidoFichero.TabIndex = 7
+        Me.btnVerOmitidoFichero.TabIndex = 8
         Me.btnVerOmitidoFichero.Text = "Ver"
-        Me.ToolTips.SetToolTip(Me.btnVerOmitidoFichero, "Ver los archivos que estan siendo omitidos")
+        Me.ToolTips.SetToolTip(Me.btnVerOmitidoFichero, "Ver los archivos que están siendo omitidos.")
         Me.btnVerOmitidoFichero.UseVisualStyleBackColor = True
         '
         'btnOmitirCarpeta
         '
-        Me.btnOmitirCarpeta.Location = New System.Drawing.Point(6, 58)
+        Me.btnOmitirCarpeta.Location = New System.Drawing.Point(23, 78)
         Me.btnOmitirCarpeta.Name = "btnOmitirCarpeta"
-        Me.btnOmitirCarpeta.Size = New System.Drawing.Size(230, 23)
-        Me.btnOmitirCarpeta.TabIndex = 6
+        Me.btnOmitirCarpeta.Size = New System.Drawing.Size(103, 23)
+        Me.btnOmitirCarpeta.TabIndex = 11
         Me.btnOmitirCarpeta.Text = "Omitir carpeta"
-        Me.ToolTips.SetToolTip(Me.btnOmitirCarpeta, "Evita que carpetas sean sincronizadas, mantienelos en la ruta local")
+        Me.ToolTips.SetToolTip(Me.btnOmitirCarpeta, "Evita que carpetas sean sincronizadas, mantiene los en la ruta local.")
         Me.btnOmitirCarpeta.UseVisualStyleBackColor = True
         '
         'btnOmitirFichero
         '
-        Me.btnOmitirFichero.Location = New System.Drawing.Point(6, 29)
+        Me.btnOmitirFichero.Location = New System.Drawing.Point(23, 20)
         Me.btnOmitirFichero.Name = "btnOmitirFichero"
-        Me.btnOmitirFichero.Size = New System.Drawing.Size(230, 23)
-        Me.btnOmitirFichero.TabIndex = 5
+        Me.btnOmitirFichero.Size = New System.Drawing.Size(103, 23)
+        Me.btnOmitirFichero.TabIndex = 7
         Me.btnOmitirFichero.Text = "Omitir ficheros"
-        Me.ToolTips.SetToolTip(Me.btnOmitirFichero, "Evita que archivos sean sincronizados, mantienelos en la ruta local")
+        Me.ToolTips.SetToolTip(Me.btnOmitirFichero, "Evita que archivos sean sincronizados, mantiene los en la ruta local.")
         Me.btnOmitirFichero.UseVisualStyleBackColor = True
         '
         'GroupBox2
@@ -171,7 +196,18 @@ Partial Class Main
         Me.GroupBox2.Size = New System.Drawing.Size(410, 293)
         Me.GroupBox2.TabIndex = 0
         Me.GroupBox2.TabStop = False
-        Me.GroupBox2.Text = "Sincronizacion "
+        Me.GroupBox2.Text = "Sincronización"
+        '
+        'cbShowNotify
+        '
+        Me.cbShowNotify.AutoSize = True
+        Me.cbShowNotify.Location = New System.Drawing.Point(9, 184)
+        Me.cbShowNotify.Name = "cbShowNotify"
+        Me.cbShowNotify.Size = New System.Drawing.Size(129, 17)
+        Me.cbShowNotify.TabIndex = 5
+        Me.cbShowNotify.Text = "Mostrar notificaciones"
+        Me.ToolTips.SetToolTip(Me.cbShowNotify, "De estar activo, se mostrarán notificaciones sobre el estado, errores y otros.")
+        Me.cbShowNotify.UseVisualStyleBackColor = True
         '
         'CheckBox1
         '
@@ -179,11 +215,11 @@ Partial Class Main
         Me.CheckBox1.Location = New System.Drawing.Point(9, 131)
         Me.CheckBox1.Name = "CheckBox1"
         Me.CheckBox1.Size = New System.Drawing.Size(105, 17)
-        Me.CheckBox1.TabIndex = 8
-        Me.CheckBox1.Text = "Sync automatico"
-        Me.ToolTips.SetToolTip(Me.CheckBox1, "De estar activo, la sincronizacion se realizara segun el tiempo indicado." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "De no " &
-        "estar activo, la sincronizacion debera ser manual, clicando en el boton Sincroni" &
-        "zar")
+        Me.CheckBox1.TabIndex = 3
+        Me.CheckBox1.Text = "Sync automático"
+        Me.ToolTips.SetToolTip(Me.CheckBox1, "De estar activo, la sincronización se realizará según el tiempo indicado." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "De no " &
+        "estar activo, la sincronización deberá ser manual, clicando en el botón Sincroni" &
+        "zar.")
         Me.CheckBox1.UseVisualStyleBackColor = True
         '
         'nudSyncTime
@@ -194,8 +230,8 @@ Partial Class Main
         Me.nudSyncTime.Minimum = New Decimal(New Integer() {10, 0, 0, 0})
         Me.nudSyncTime.Name = "nudSyncTime"
         Me.nudSyncTime.Size = New System.Drawing.Size(68, 20)
-        Me.nudSyncTime.TabIndex = 3
-        Me.ToolTips.SetToolTip(Me.nudSyncTime, "Cada cuantos segundos se comprobaran cambios para la sincronizacion")
+        Me.nudSyncTime.TabIndex = 4
+        Me.ToolTips.SetToolTip(Me.nudSyncTime, "Cada cuantos segundos se comprobarán cambios para la sincronización.")
         Me.nudSyncTime.Value = New Decimal(New Integer() {60, 0, 0, 0})
         '
         'Label3
@@ -213,17 +249,6 @@ Partial Class Main
         Me.TrayIcon.Icon = CType(resources.GetObject("TrayIcon.Icon"), System.Drawing.Icon)
         Me.TrayIcon.Text = "CloudDesktopManager"
         Me.TrayIcon.Visible = True
-        '
-        'cbShowNotify
-        '
-        Me.cbShowNotify.AutoSize = True
-        Me.cbShowNotify.Location = New System.Drawing.Point(9, 184)
-        Me.cbShowNotify.Name = "cbShowNotify"
-        Me.cbShowNotify.Size = New System.Drawing.Size(129, 17)
-        Me.cbShowNotify.TabIndex = 9
-        Me.cbShowNotify.Text = "Mostrar notificaciones"
-        Me.ToolTips.SetToolTip(Me.cbShowNotify, "De estar activo, se mostraran notificaciones sobre el estado, errores y otros")
-        Me.cbShowNotify.UseVisualStyleBackColor = True
         '
         'Main
         '
@@ -264,4 +289,6 @@ Partial Class Main
     Friend WithEvents ToolTips As ToolTip
     Friend WithEvents CheckBox1 As CheckBox
     Friend WithEvents cbShowNotify As CheckBox
+    Friend WithEvents btnOmitirExtencion As Button
+    Friend WithEvents btnVerOmitidoExtencion As Button
 End Class
