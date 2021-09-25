@@ -9,8 +9,8 @@ Imports System.Runtime.InteropServices
 
 ' Revisar los valores de los atributos del ensamblado
 
-<Assembly: AssemblyTitle("Cloud Desktop Manager")>
-<Assembly: AssemblyDescription("Administrador de respaldo para el escritorio")>
+<Assembly: AssemblyTitle("Cloud Folder Manager")>
+<Assembly: AssemblyDescription("Administrador de respaldo para carpetas locales con la nube")>
 <Assembly: AssemblyCompany("Urfenox")>
 <Assembly: AssemblyProduct("CloudDesktopManager")>
 <Assembly: AssemblyCopyright("")>
@@ -32,6 +32,6 @@ Imports System.Runtime.InteropServices
 ' mediante el carácter '*', como se muestra a continuación:
 ' <Assembly: AssemblyVersion("1.0.*")>
 
-<Assembly: AssemblyVersion("1.2.0.0")>
-<Assembly: AssemblyFileVersion("01.09.20.21")>
+<Assembly: AssemblyVersion("1.3.0.0")>
+<Assembly: AssemblyFileVersion("25.09.20.21")>
 <Assembly: NeutralResourcesLanguage("es")>

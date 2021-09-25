@@ -3,12 +3,14 @@ Imports Microsoft.Win32
 Public Class Main
     Dim DIRCommons As String = "C:\Users\" & Environment.UserName & "\AppData\Local\CRZ_Labs\CloudDesktopManager"
 
+    Dim Parametro As String
     Dim LocalSyncThread As Threading.Thread
     Dim RemoteSyncThread As Threading.Thread
     Dim LocalSyncThreadStatus As Boolean = False
     Dim RemoteSyncThreadStatus As Boolean = False
     Dim IsAutoSync As Boolean = False
-    Dim SaveLog As Boolean = True 'True para desarrollo, False para version final estable
+    Dim AskForLocals As Boolean = False
+    Dim SaveLog As Boolean = False 'True para desarrollo, False para version final estable (Arg: '-Log'=>True)
 
     Dim RutaNube As String
     Dim RutaLocal As String
@@ -20,11 +22,17 @@ Public Class Main
     Private Sub Main_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         SaveSkipFiles()
         SaveSkipFolder()
+        SaveSkipExtension()
         End
     End Sub
 
     Private Sub Main_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         CheckForIllegalCrossThreadCalls = False
+        Parametro = Command()
+        If Parametro.Contains("-Log") Then
+            SaveLog = True
+            Parametro.Replace("-Log", Nothing)
+        End If
         CommonLoad()
     End Sub
 
@@ -153,6 +161,13 @@ Public Class Main
     Private Sub btnVerOmitidoExtencion_Click(sender As Object, e As EventArgs) Handles btnVerOmitidoExtencion.Click
         Process.Start("notepad.exe", DIRCommons & "\extensionSkip.lst")
     End Sub
+    Private Sub cbAskForLocals_CheckedChanged(sender As Object, e As EventArgs) Handles cbAskForLocals.CheckedChanged
+        If cbAskForLocals.Checked Then
+            AskForLocals = True
+        Else
+            AskForLocals = False
+        End If
+    End Sub
     Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox1.CheckedChanged
         If CheckBox1.Checked = True Then
             btnStart.Text = "Comenzar"
@@ -259,14 +274,21 @@ Public Class Main
                             Dim FileName As String = IO.Path.GetFileName(item)
                             Dim result = fileSkip.ToArray().Any(Function(x) x.ToString().Contains(FileName))
                             Dim result2 = extensionSkip.ToArray().Any(Function(x) x.ToString().Contains(IO.Path.GetExtension(FileName)))
-                            If result = False And result2 = False Then
-                                Try
-                                    syncCounter += 1
-                                    My.Computer.FileSystem.MoveFile(RutaLocal & "\" & FileName, RutaNube & "\" & FileName, True)
-                                    CreateFileLNKLocal(item)
-                                Catch ex As Exception 'entendiendo que un archivo podria estar abierto
-                                    AddToLog("[GetLocalFilesAndFolders(File)@Main]", "Error: " & ex.Message, False)
-                                End Try
+                            If result2 = False Then
+                                If result = False Then
+                                    Try
+                                        If AskForLocals Then
+                                            If MessageBox.Show("¿Debo sincronizar el archivo '" & FileName & "' con la nube?", "Confirmación sincronización", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.No Then
+                                                Continue For
+                                            End If
+                                        End If
+                                        syncCounter += 1
+                                        My.Computer.FileSystem.MoveFile(RutaLocal & "\" & FileName, RutaNube & "\" & FileName, True)
+                                        CreateFileLNKLocal(item)
+                                    Catch ex As Exception 'entendiendo que un archivo podria estar abierto
+                                        AddToLog("[GetLocalFilesAndFolders(File)@Main]", "Error: " & ex.Message, False)
+                                    End Try
+                                End If
                             End If
                         End If
                     End If
@@ -278,6 +300,11 @@ Public Class Main
                     Dim result = folderSkip.ToArray().Any(Function(x) x.ToString().Contains(FolderName))
                     If result = False Then
                         Try
+                            If AskForLocals Then
+                                If MessageBox.Show("¿Debo sincronizar la carpeta '" & FolderName & "' con la nube?", "Confirmación sincronización", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.No Then
+                                    Continue For
+                                End If
+                            End If
                             syncCounter += 1
                             My.Computer.FileSystem.MoveDirectory(item, RutaNube & "\" & FolderName, True)
                             CreateFolderLNKLocal(item)
@@ -349,10 +376,11 @@ Public Class Main
             BaseDataRegeditWriter.SetValue("SyncTimer", nudSyncTime.Value, RegistryValueKind.String)
             BaseDataRegeditWriter.SetValue("AutoSync", CheckBox1.Checked, RegistryValueKind.String)
             BaseDataRegeditWriter.SetValue("ShowNotify", cbShowNotify.Checked, RegistryValueKind.String)
+            BaseDataRegeditWriter.SetValue("AskForLocals", cbAskForLocals.Checked, RegistryValueKind.String)
 
             ReadConfig()
         Catch ex As Exception
-            AddToLog("[SaveConfigFile@Main]", "Error: " & ex.Message, True)
+            AddToLog("[SaveConfigFile@Main]", "Error: " & ex.Message, False)
         End Try
     End Sub
     Sub ReadConfig()
@@ -374,9 +402,10 @@ Public Class Main
             nudSyncTime.Value = BaseDataRegeditReader.GetValue("SyncTimer")
             CheckBox1.Checked = Boolean.Parse(BaseDataRegeditReader.GetValue("AutoSync"))
             cbShowNotify.Checked = Boolean.Parse(BaseDataRegeditReader.GetValue("ShowNotify"))
+            cbAskForLocals.Checked = Boolean.Parse(BaseDataRegeditReader.GetValue("AskForLocals"))
 
         Catch ex As Exception
-            AddToLog("[ReadConfigFile@Main]", "Error: " & ex.Message, True)
+            AddToLog("[ReadConfigFile@Main]", "Error: " & ex.Message, False)
         End Try
     End Sub
 #Region "App Config Files"
@@ -536,9 +565,9 @@ Public Class Main
             If My.Computer.FileSystem.FileExists(extensionSkipPath) Then
                 My.Computer.FileSystem.DeleteFile(extensionSkipPath)
             End If
-            My.Computer.FileSystem.WriteAllText(extensionSkipPath, ".ini", False)
+            My.Computer.FileSystem.WriteAllText(extensionSkipPath, ".", False)
             For Each skipExtension As String In extensionSkip
-                If skipExtension <> ".ini" Then
+                If skipExtension <> "." Then
                     My.Computer.FileSystem.WriteAllText(extensionSkipPath, vbCrLf & skipExtension, True)
                 End If
             Next
@@ -552,13 +581,21 @@ Public Class Main
             extensionSkip.Clear()
             Dim extensionSkipPath As String = DIRCommons & "\extensionSkip.lst"
             For Each item As String In IO.File.ReadLines(extensionSkipPath)
-                If item <> ".ini" Then
+                If item <> "." Then
                     extensionSkip.Add(item)
                 End If
             Next
         Catch ex As Exception
             AddToLog("[ReadSkipExtension@Main]", "Error: " & ex.Message, True)
         End Try
+    End Sub
+
+    Private Sub btnSaveConfig_Click(sender As Object, e As EventArgs) Handles btnSaveConfig.Click
+        SaveConfig()
+    End Sub
+
+    Private Sub btnLoadConfig_Click(sender As Object, e As EventArgs) Handles btnLoadConfig.Click
+        CommonLoad()
     End Sub
 #End Region
 End Class

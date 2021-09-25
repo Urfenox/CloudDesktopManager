@@ -38,12 +38,15 @@ Partial Class Main
         Me.btnOmitirCarpeta = New System.Windows.Forms.Button()
         Me.btnOmitirFichero = New System.Windows.Forms.Button()
         Me.GroupBox2 = New System.Windows.Forms.GroupBox()
+        Me.cbAskForLocals = New System.Windows.Forms.CheckBox()
         Me.cbShowNotify = New System.Windows.Forms.CheckBox()
         Me.CheckBox1 = New System.Windows.Forms.CheckBox()
         Me.nudSyncTime = New System.Windows.Forms.NumericUpDown()
         Me.Label3 = New System.Windows.Forms.Label()
         Me.TrayIcon = New System.Windows.Forms.NotifyIcon(Me.components)
         Me.ToolTips = New System.Windows.Forms.ToolTip(Me.components)
+        Me.btnSaveConfig = New System.Windows.Forms.Button()
+        Me.btnLoadConfig = New System.Windows.Forms.Button()
         Me.GroupBox1.SuspendLayout()
         Me.GroupBox2.SuspendLayout()
         CType(Me.nudSyncTime, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -181,6 +184,7 @@ Partial Class Main
         '
         'GroupBox2
         '
+        Me.GroupBox2.Controls.Add(Me.cbAskForLocals)
         Me.GroupBox2.Controls.Add(Me.cbShowNotify)
         Me.GroupBox2.Controls.Add(Me.CheckBox1)
         Me.GroupBox2.Controls.Add(Me.nudSyncTime)
@@ -197,6 +201,18 @@ Partial Class Main
         Me.GroupBox2.TabIndex = 0
         Me.GroupBox2.TabStop = False
         Me.GroupBox2.Text = "Sincronización"
+        '
+        'cbAskForLocals
+        '
+        Me.cbAskForLocals.AutoSize = True
+        Me.cbAskForLocals.Location = New System.Drawing.Point(9, 207)
+        Me.cbAskForLocals.Name = "cbAskForLocals"
+        Me.cbAskForLocals.Size = New System.Drawing.Size(126, 17)
+        Me.cbAskForLocals.TabIndex = 8
+        Me.cbAskForLocals.Text = "Preguntar por locales"
+        Me.ToolTips.SetToolTip(Me.cbAskForLocals, "De estar activo, se preguntara al usuario para poder sincronizar cada archivo y/o" &
+        " carpeta.")
+        Me.cbAskForLocals.UseVisualStyleBackColor = True
         '
         'cbShowNotify
         '
@@ -250,11 +266,33 @@ Partial Class Main
         Me.TrayIcon.Text = "CloudDesktopManager"
         Me.TrayIcon.Visible = True
         '
+        'btnSaveConfig
+        '
+        Me.btnSaveConfig.Location = New System.Drawing.Point(12, 380)
+        Me.btnSaveConfig.Name = "btnSaveConfig"
+        Me.btnSaveConfig.Size = New System.Drawing.Size(90, 35)
+        Me.btnSaveConfig.TabIndex = 9
+        Me.btnSaveConfig.Text = "Guardar configuración"
+        Me.ToolTips.SetToolTip(Me.btnSaveConfig, "Guarda la configuración")
+        Me.btnSaveConfig.UseVisualStyleBackColor = True
+        '
+        'btnLoadConfig
+        '
+        Me.btnLoadConfig.Location = New System.Drawing.Point(12, 414)
+        Me.btnLoadConfig.Name = "btnLoadConfig"
+        Me.btnLoadConfig.Size = New System.Drawing.Size(90, 35)
+        Me.btnLoadConfig.TabIndex = 10
+        Me.btnLoadConfig.Text = "Cargar configuración"
+        Me.ToolTips.SetToolTip(Me.btnLoadConfig, "Carga la configuración para aplicar cambios")
+        Me.btnLoadConfig.UseVisualStyleBackColor = True
+        '
         'Main
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(434, 461)
+        Me.Controls.Add(Me.btnLoadConfig)
+        Me.Controls.Add(Me.btnSaveConfig)
         Me.Controls.Add(Me.GroupBox2)
         Me.Controls.Add(Me.GroupBox1)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
@@ -291,4 +329,7 @@ Partial Class Main
     Friend WithEvents cbShowNotify As CheckBox
     Friend WithEvents btnOmitirExtencion As Button
     Friend WithEvents btnVerOmitidoExtencion As Button
+    Friend WithEvents cbAskForLocals As CheckBox
+    Friend WithEvents btnSaveConfig As Button
+    Friend WithEvents btnLoadConfig As Button
 End Class
