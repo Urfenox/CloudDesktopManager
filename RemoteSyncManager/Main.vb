@@ -30,6 +30,9 @@ Public Class Main
         If My.Computer.FileSystem.DirectoryExists(DIRCommons) = False Then
             My.Computer.FileSystem.CreateDirectory(DIRCommons)
         End If
+        If My.Computer.FileSystem.DirectoryExists(dirPath) = False Then
+            My.Computer.FileSystem.CreateDirectory(dirPath)
+        End If
         'If My.Computer.FileSystem.FileExists(DIRCommons & "\fileSkip.lst") Then
         '    ReadSkipFiles()
         'End If
@@ -52,14 +55,13 @@ Public Class Main
             Else
                 RutaNube = tbRutaRemota.Text
                 RutaLocal = tbRutaLocal.Text
+                User = tbUser.Text
+                Password = tbPassword.Text
 
                 SaveConfig()
 
                 If My.Computer.FileSystem.DirectoryExists(RutaLocal) = False Then
                     My.Computer.FileSystem.CreateDirectory(RutaLocal)
-                End If
-                If My.Computer.FileSystem.DirectoryExists(RutaNube) = False Then
-                    My.Computer.FileSystem.CreateDirectory(RutaNube)
                 End If
 
                 SaveLocalToServer()
@@ -76,14 +78,13 @@ Public Class Main
             Else
                 RutaNube = tbRutaRemota.Text
                 RutaLocal = tbRutaLocal.Text
+                User = tbUser.Text
+                Password = tbPassword.Text
 
                 SaveConfig()
 
                 If My.Computer.FileSystem.DirectoryExists(RutaLocal) = False Then
                     My.Computer.FileSystem.CreateDirectory(RutaLocal)
-                End If
-                If My.Computer.FileSystem.DirectoryExists(RutaNube) = False Then
-                    My.Computer.FileSystem.CreateDirectory(RutaNube)
                 End If
 
                 LoadServerToLocal()
@@ -114,18 +115,19 @@ Public Class Main
             '   3) Notificacion
 
             'Obtener la ultima carga
-            Dim remoteFilePath As String = RutaNube & "/" & zipFileName
+            Dim remoteFilePath As String = RutaNube & "/" & zipFileName & ".cph"
+            Dim localFilePath As String = dirPath & "\" & zipFileName & ".zip"
 
             'Verificar
-            If My.Computer.FileSystem.FileExists(dirPath & "\" & zipFileName) = True Then
-                My.Computer.FileSystem.DeleteFile(dirPath & "\" & zipFileName)
+            If My.Computer.FileSystem.FileExists(localFilePath) = True Then
+                My.Computer.FileSystem.DeleteFile(localFilePath)
             End If
 
             'Descargar
-            My.Computer.Network.DownloadFile(remoteFilePath, dirPath & "\" & zipFileName, User, Password)
+            My.Computer.Network.DownloadFile(remoteFilePath, localFilePath, User, Password)
 
             'Descomprimir
-            ZipFile.ExtractToDirectory(dirPath & "\" & zipFileName, RutaLocal)
+            ZipFile.ExtractToDirectory(localFilePath, RutaLocal)
 
         Catch ex As Exception
             AddToLog("[LoadServerToLocal@Main]", "Error: " & ex.Message, True)
@@ -137,19 +139,19 @@ Public Class Main
             '   1) La carpeta seleccionada se comprimira en un .ZIP
             '   2) El .ZIP se subira al servidor
             '   3) Notificacion
-
             'OJO, se debe poder identificar cual fue la ultima copia que se subio, esto para luego poder cargarla
-            zipFileName = DateTime.Now.ToString("hhmmttddMMyyyy") & ".zip"
+            zipFileName = "sync_compressed_file"
+            Dim localFilePath As String = dirPath & "\" & zipFileName & ".zip"
             'Verificar
-            If My.Computer.FileSystem.FileExists(dirPath & "\" & zipFileName) = True Then
-                My.Computer.FileSystem.DeleteFile(dirPath & "\" & zipFileName)
+            If My.Computer.FileSystem.FileExists(localFilePath) = True Then
+                My.Computer.FileSystem.DeleteFile(localFilePath)
             End If
 
             'Comprimir
-            ZipFile.CreateFromDirectory(RutaLocal, dirPath & "\" & zipFileName)
+            ZipFile.CreateFromDirectory(RutaLocal, localFilePath)
 
             'Subir
-            My.Computer.Network.UploadFile(dirPath & "\" & zipFileName, RutaNube & "/" & zipFileName, User, Password)
+            My.Computer.Network.UploadFile(localFilePath, RutaNube & "/" & zipFileName & ".cph", User, Password)
 
         Catch ex As Exception
             AddToLog("[SaveLocalToServer@Main]", "Error: " & ex.Message, True)
